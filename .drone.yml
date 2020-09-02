@@ -1,0 +1,28 @@
+
+---
+kind: pipeline
+type: kubernetes
+name: autodoc
+steps:
+
+  - name: dependencies
+    image: docker:git
+    commands:
+      - git clone https://github.com/Klarrio/dsh-tool-doc-conf
+
+  - name: autodocument
+    image: registry.cp.kpn-dsh.com/base/auto-documentation:1.0.3   
+    pull: always    
+    environment:
+      DOC_HOST: https://klarrio.atlassian.net/wiki/
+      DOC_USER:
+        from_secret: atlassian-user
+      DOC_PASSWORD:
+        from_secret: atlassian-pass
+      REPOSITORY: charts
+    commands:
+      - python3 /md2confluence/md2confluence.py --url "$${DOC_HOST}" --username "$${DOC_USER}" --password "$${DOC_PASSWORD}" --config dsh-tool-doc-conf/config.yaml --organization Klarrio --repository "$${REPOSITORY}" --type autodoc
+
+image_pull_secrets:
+  - regsecret-ci
+    
